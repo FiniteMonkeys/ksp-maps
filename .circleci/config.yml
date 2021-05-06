@@ -6,16 +6,135 @@ jobs:
   build:
     docker:
       - image: circleci/elixir:1.7
+    environment:
+      MIX_ENV: test
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - restore_cache:
+          key: deps-cache-{{ checksum "mix.lock" }}
+      - run: mix do deps.get, deps.compile
+      - save_cache:
+          key: deps-cache-{{ checksum "mix.lock" }}
+          paths:
+            - deps
+            - ~/.mix
+            - _build
+      - run: mix compile
+      # - run: echo "$OTP_VERSION $ELIXIR_VERSION" > .version_file
+      # - restore_cache:
+      #     key: plt-cache-{{ checksum ".version_file" }}-{{ checksum "mix.lock" }}
+      # - run: mix dialyzer --plt
+      # - save_cache:
+      #     key: plt-cache-{{ checksum ".version_file" }}-{{ checksum "mix.lock" }}
+      #     paths:
+      #       - deps
+      #       - ~/.mix
+      #       - _build
+
+  check_format:
+    docker:
+      - image: circleci/elixir:1.7
+    environment:
+      MIX_ENV: test
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: mix format --check-formatted
+
+  credo:
+    docker:
+      - image: circleci/elixir:1.7
+    environment:
+      MIX_ENV: test
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-cache-{{ checksum "mix.lock" }}
+      - run: mix credo
+
+  # dialyzer:
+  #   docker:
+  #     - image: circleci/elixir:1.7
+  #   environment:
+  #     MIX_ENV: test
+  #   working_directory: ~/repo
+  #   steps:
+  #     - checkout
+  #     - run: echo "$OTP_VERSION $ELIXIR_VERSION" > .version_file
+  #     - restore_cache:
+  #         key: plt-cache-{{ checksum ".version_file" }}-{{ checksum "mix.lock" }}
+  #     - run: mix dialyzer --halt-exit-status
+
+  documentation:
+    docker:
+      - image: circleci/elixir:1.7
+    environment:
+      MIX_ENV: test
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-cache-{{ checksum "mix.lock" }}
+      - run: mix docs
+      - store_artifacts:
+          path: doc
+          destination: documentation
+
+  test:
+    docker:
+      - image: circleci/elixir:1.7
+        environment:
+          MIX_ENV: test
       - image: circleci/postgres:11-alpine-ram
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: kerbal_maps_test
-
     working_directory: ~/repo
     steps:
       - checkout
-
-      - run: mix local.hex --force
-      - run: mix local.rebar --force
-      - run: mix deps.get
+      - restore_cache:
+          key: deps-cache-{{ checksum "mix.lock" }}
       - run: DATABASE_URL="postgres://postgres@localhost:5432/kerbal_maps_test" mix test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: /^(master|develop|dependabot\/.*)$/
+      - check_format:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /^(master|develop|dependabot\/.*)$/
+      - credo:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /^(master|develop|dependabot\/.*)$/
+      # - dialyzer:
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         only: /^(master|develop|dependabot\/.*)$/
+      - documentation:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /^(master|develop|dependabot\/.*)$/
+      - test:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /^(master|develop|dependabot\/.*)$/
