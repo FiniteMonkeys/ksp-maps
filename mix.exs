@@ -40,7 +40,7 @@ defmodule KerbalMaps.MixProject do
       {:credo, "~> 1.2.2", only: [:dev, :test], runtime: false},
       {:distillery, "~> 2.0"},
       {:ecto_sql, "~> 3.0"},
-      {:espec_phoenix, "~> 0.6.10", only: :test},
+      {:espec_phoenix, "~> 0.7.1", only: :test},
       {:espec, "~> 1.6", only: :test},
       {:ex_machina, "~> 2.2", only: :test},
       {:faker, "~> 0.11.0", only: [:dev, :test], runtime: false},
