@@ -13,7 +13,7 @@
     "react-dom": "^16.7.0",
     "scriptjs": "^2.5.9",
     "serialize-javascript": "^2.1.1",
-    "set-value": "^2.0.1"
+    "set-value": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
