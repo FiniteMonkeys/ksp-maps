@@ -46,7 +46,7 @@ defmodule KerbalMaps.MixProject do
       {:faker, "~> 0.11.0", only: [:dev, :test], runtime: false},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
-      {:mix_test_watch, "~> 0.9.0", only: :dev, runtime: false},
+      {:mix_test_watch, "~> 1.0.3", only: :dev, runtime: false},
       {:nimble_parsec, "~> 0.5.0"},
       {:phoenix_ecto, "~> 4.0"},
       {:phoenix_html, "~> 2.11"},
